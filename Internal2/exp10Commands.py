@@ -1,4 +1,4 @@
-# 1️⃣ Check your network interface and IP address
+# 1️⃣ Check your network interface and IP address(just for this 172.20.8.0/22)
 ip a
 
 # 2️⃣ Update package lists
@@ -25,4 +25,5 @@ sudo snort -A console -q -c /etc/snort/snort.conf -i enp1s0
 
 # 8️⃣ In another terminal, generate ICMP traffic to trigger the rule
 ping -c 1 8.8.8.8
+
 
