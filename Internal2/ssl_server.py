@@ -8,7 +8,6 @@ PORT = 8443
 context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 context.load_cert_chain(certfile='server_cert.pem', keyfile='server_key.pem')
 
-# Create plain socket, then accept and wrap accepted sockets (NOT wrapping the listening socket)
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     sock.bind((HOST, PORT))
@@ -18,15 +17,20 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:
     while True:
         newsock, addr = sock.accept()
         print(f"[+] Connection from {addr}")
-        # Wrap the accepted socket with SSL for this session
+
         try:
             with context.wrap_socket(newsock, server_side=True) as ssock:
-                data = ssock.recv(4096)
-                if not data:
-                    print("[-] No data received")
-                    continue
-                print(f"[<] Received: {data.decode(errors='ignore')}")
-                ssock.sendall(b"Hello from SSL server!")
+                while True:
+                    data = ssock.recv(4096)
+                    if not data:
+                        print("[-] Client closed the connection.")
+                        break
+
+                    msg = data.decode(errors="ignore")
+                    print(f"[<] Received from {addr}: {msg}")
+
+                    reply = f"Echo from SSL server: {msg}"
+                    ssock.sendall(reply.encode())
         except ssl.SSLError as e:
             print(f"[!] SSL error: {e}")
         except Exception as e:
