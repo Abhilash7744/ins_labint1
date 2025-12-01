@@ -6,6 +6,7 @@
 
 
 
+
 # ssl_client.py
 import socket
 import ssl
@@ -14,7 +15,6 @@ HOST = '127.0.0.1'
 PORT = 8443
 
 # NOTE: For demo only, we disable verification for a self-signed cert.
-# Do NOT do this in production.
 context = ssl.create_default_context()
 context.check_hostname = False
 context.verify_mode = ssl.CERT_NONE
@@ -22,6 +22,25 @@ context.verify_mode = ssl.CERT_NONE
 with socket.create_connection((HOST, PORT)) as sock:
     with context.wrap_socket(sock, server_hostname=HOST) as ssock:
         print("[*] TLS connection established. Cipher:", ssock.cipher())
-        ssock.sendall(b"Hello from SSL client!")
-        data = ssock.recv(4096)
-        print("[<] Server says:", data.decode())
+        print("Type messages to send. Type 'exit' or 'quit' to close.\n")
+
+        while True:
+            msg = input("You: ").strip()
+            if msg.lower() in ("exit", "quit"):
+                print("[*] Closing client connection.")
+                break
+
+            if not msg:
+                continue  # ignore empty lines
+
+            ssock.sendall(msg.encode())
+
+            # wait for server reply
+            data = ssock.recv(4096)
+            if not data:
+                print("[!] Server closed the connection.")
+                break
+
+            print("Server:", data.decode(errors="ignore"))
+
+
